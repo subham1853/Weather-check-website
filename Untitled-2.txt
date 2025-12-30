@@ -1,0 +1,75 @@
+// js/api.js
+import { API_BASE_URL } from './config.js';
+
+/**
+ * Gets a pre-signed URL from the backend.
+ * @param {string} filename - The name of the file to be uploaded.
+ * @returns {Promise<object>} - The pre-signed data object { uploadUrl, fields, objectKey }.
+ * @throws {Error} - If the API call fails.
+ */
+export async function getPresignedUrl(filename) {
+    const response = await fetch(`${API_BASE_URL}/generate-upload-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: filename }),
+    });
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({ message: 'Failed to read error response.' }));
+        throw new Error(`Failed to get pre-signed URL (Status ${response.status}): ${errorBody.message || response.statusText}`);
+    }
+    return await response.json();
+}
+
+/**
+ * Uploads the file directly to S3 using pre-signed data.
+ * @param {object} presignedData - Object containing { uploadUrl, fields }.
+ * @param {File} imageFile - The file object to upload.
+ * @throws {Error} - If the upload fails.
+ */
+export async function uploadToS3(presignedData, imageFile) {
+    const formData = new FormData();
+    Object.entries(presignedData.fields).forEach(([key, value]) => {
+        formData.append(key, value);
+    });
+    formData.append('file', imageFile); // Must be last
+
+    const uploadResponse = await fetch(presignedData.uploadUrl, {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!uploadResponse.ok) {
+        // S3 often returns XML errors, attempt to read text
+        const errorText = await uploadResponse.text();
+        throw new Error(`S3 Upload Failed (Status ${uploadResponse.status}): ${errorText || uploadResponse.statusText}`);
+    }
+    // Check for success status (like 204 No Content)
+     console.log("S3 Upload Status:", uploadResponse.status);
+    // No actual body content needed on success
+}
+
+/**
+ * Triggers the backend moderation and generation process.
+ * @param {string} bucketName - The S3 bucket name.
+ * @param {string} objectKey - The S3 object key (final filename/path).
+ * @param {string} userPrompt - The prompt entered by the user.
+ * @returns {Promise<object>} - The moderation result object.
+ * @throws {Error} - If the API call fails.
+ */
+export async function triggerModeration(bucketName, objectKey, userPrompt) {
+    const response = await fetch(`${API_BASE_URL}/images`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            imageBucket: bucketName,
+            imageKey: objectKey,
+            prompt: userPrompt
+        }),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({ message: 'Failed to read error response.' }));
+        throw new Error(`Moderation API call failed (Status ${response.status}): ${errorBody.message || response.statusText}`);
+    }
+    return await response.json();
+}
