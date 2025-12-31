@@ -71,7 +71,7 @@ Add API Gateway trigger
 
 3️⃣ Add Environment Variables
 WEATHER_API_KEY=34dd7442ff6fe888f9549ab12377512a
-SNS_TOPIC_ARN="arn:aws:sns:ap-south-1:123456789012:WeatherAlertTopic"
+SNS_TOPIC_ARN="arn:aws:sns:ap-south-1:894016xxxxxx:WeatherAlertTopic"
 
 4️⃣ Deploy & Test
 
