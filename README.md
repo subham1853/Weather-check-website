@@ -56,7 +56,7 @@ User receives real-time notification
 
 🧪 How to Run the Project
 1️⃣ Clone the Repository
-git clone https://github.com/your-username/weather-alert-system.git
+git clone https://github.com/subham1853/weather-alert-system.git
 cd weather-alert-system
 
 2️⃣ Configure AWS
@@ -70,8 +70,8 @@ Create Lambda function
 Add API Gateway trigger
 
 3️⃣ Add Environment Variables
-WEATHER_API_KEY=your_api_key
-SNS_TOPIC_ARN=your_sns_topic_arn
+WEATHER_API_KEY=34dd7442ff6fe888f9549ab12377512a
+SNS_TOPIC_ARN="arn:aws:sns:ap-south-1:123456789012:WeatherAlertTopic"
 
 4️⃣ Deploy & Test
 
